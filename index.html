@@ -14,6 +14,16 @@
     localStorage.setItem("privateKey", privateKey);
     console.log("your private key:", privateKey)
 
+    // Connect to a relay
+    const relay = nostrTools.relayInit('wss://nos.lol')
+    relay.on('connect', () => {
+      console.log(`connected to ${relay.url}`)
+    })
+    relay.on('error', () => {
+      console.log(`failed to connect to ${relay.url}`)
+    })
+    await relay.connect()
+
     function App() {
       return html`
         <h1>Welcome to Nostr workshop!</h1>
