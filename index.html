@@ -6,10 +6,19 @@
   <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
   <script type="module">
     import { html, render } from 'https://esm.sh/htm/preact/standalone'
+    import * as nostrTools from 'https://esm.sh/nostr-tools'
+
+    // Generate a private key and a public key
+    let privateKey = localStorage.getItem("privateKey") || nostrTools.generatePrivateKey() // hex string
+    let publicKey = nostrTools.getPublicKey(privateKey) // hex string
+    localStorage.setItem("privateKey", privateKey);
+    console.log("your private key:", privateKey)
 
     function App() {
       return html`
         <h1>Welcome to Nostr workshop!</h1>
+        <h3>Hello</h3>
+        <span> ${publicKey} </span> <br/><br/>
       `;
     }
     render(html`<${App} />`, document.body);
