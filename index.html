@@ -24,6 +24,13 @@
     })
     await relay.connect()
 
+    // get your profile data 
+    const profileEvent = await relay.get({
+      kinds: [0],
+      authors: [publicKey]
+    })
+    const profile = profileEvent && JSON.parse(profileEvent.content)
+
     function App() {
       const [events, setEvents] = useState([]);
 
@@ -60,7 +67,12 @@
       return html`
         <h1>Welcome to Nostr workshop!</h1>
         <h3>Hello</h3>
-        <span> ${publicKey} </span> <br/><br/>
+        ${profile ? html`
+            <img height=32 src=${profile.picture}/>
+            <span> ${profile.name}</span>
+            ` : html` <span> ${publicKey} </span> 
+          `}
+        <br/><br/>
 
         <textarea id="message" placeholder="write your message" /> <br/>
         <button onClick=${() => publishMessage()}>Publish message</button>
