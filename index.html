@@ -10,11 +10,18 @@
     import { html, render, useEffect, useState } from 'https://esm.sh/htm/preact/standalone'
     import * as nostrTools from 'https://esm.sh/nostr-tools'
 
-    // Generate a private key and a public key
-    let privateKey = localStorage.getItem("privateKey") || nostrTools.generatePrivateKey() // hex string
-    let publicKey = nostrTools.getPublicKey(privateKey) // hex string
-    localStorage.setItem("privateKey", privateKey);
-    console.log("your private key:", privateKey)
+    let publicKey = null
+    if (window.nostr) {
+      // Get public key from nostr extension
+      await window.nostr.enable();
+      publicKey = await window.nostr.getPublicKey();
+    } else {
+      // Generate a private key and a public key
+      let privateKey = localStorage.getItem("privateKey") || nostrTools.generatePrivateKey() // hex string
+      publicKey = nostrTools.getPublicKey(privateKey) // hex string
+      console.log(privateKey)
+      localStorage.setItem("privateKey", privateKey);
+    }
 
     // Connect to a relay
     const relay = nostrTools.relayInit('wss://nos.lol')
@@ -71,7 +78,9 @@
         }
         // Sign event
         event.id = nostrTools.getEventHash(event)
-        event.sig = nostrTools.getSignature(event, privateKey)
+        if (window.nostr) {
+          event = await window.nostr.signEvent(event);
+        } else { event.sig = nostrTools.getSignature(event, localStorage.getItem("privateKey")) }
         await relay.publish(event)
       }
 
