@@ -43,10 +43,27 @@
 
       }, [])
 
+      const publishMessage = async () => {
+        let event = {
+          kind: 1,
+          created_at: Math.floor(Date.now() / 1000),
+          tags: [],
+          content: document.getElementById("message").value,
+          pubkey: publicKey,
+        }
+        // Sign event
+        event.id = nostrTools.getEventHash(event)
+        event.sig = nostrTools.getSignature(event, privateKey)
+        await relay.publish(event)
+      }
+
       return html`
         <h1>Welcome to Nostr workshop!</h1>
         <h3>Hello</h3>
         <span> ${publicKey} </span> <br/><br/>
+
+        <textarea id="message" placeholder="write your message" /> <br/>
+        <button onClick=${() => publishMessage()}>Publish message</button>
 
         <h2> Messages </h2>
         ${events.map((event) => html`
