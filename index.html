@@ -32,7 +32,7 @@
         let sub = relay.sub([
           {
             kinds: [1],
-            authors: [publicKey],
+            '#t': ['fosscommT']
           },
         ])
 
@@ -47,7 +47,7 @@
         let event = {
           kind: 1,
           created_at: Math.floor(Date.now() / 1000),
-          tags: [],
+          tags: [['t', 'fosscommT']],
           content: document.getElementById("message").value,
           pubkey: publicKey,
         }
