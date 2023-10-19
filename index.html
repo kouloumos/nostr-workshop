@@ -45,6 +45,15 @@
 
         sub.on('event', async event => {
           console.log('got event:', event)
+          // check if there are metadata for author
+          let profileEvent = await relay.get({
+            kinds: [0],
+            authors: [event.pubkey]
+          })
+          if (profileEvent) {
+            const authorProfile = JSON.parse(profileEvent.content)
+            event.author = authorProfile
+          }
           setEvents(prev => [event, ...prev])
         })
 
@@ -79,7 +88,8 @@
 
         <h2> Messages </h2>
         ${events.map((event) => html`
-          <span> ${event.pubkey} </span>
+          <img height=32 src=${event.author?.picture || ""}/>
+          <span> ${event.author?.name || event.pubkey} </span>
           <b> ${event.content} </b> <br/><br/>
         `)}
       `;
