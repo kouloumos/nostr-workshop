@@ -4,6 +4,8 @@
 <head>
   <title>Nostr Workshop FOSSCOMM 2023</title>
   <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script> tailwind.config = { corePlugins: { preflight: false } } </script>
   <script type="module">
     import { html, render, useEffect, useState } from 'https://esm.sh/htm/preact/standalone'
     import * as nostrTools from 'https://esm.sh/nostr-tools'
@@ -74,25 +76,35 @@
       }
 
       return html`
+      <div class="flex flex-col px-12 lg:px-64">
         <h1>Welcome to Nostr workshop!</h1>
         <h3>Hello</h3>
-        ${profile ? html`
-            <img height=32 src=${profile.picture}/>
-            <span> ${profile.name}</span>
+        <div class="flex items-center pb-4">
+          ${profile ? html`
+            <img class="rounded-full w-14 " src=${profile.picture}/>
+            <div class="flex flex-col px-2">
+              <span> ${profile.name} </span>
+            </div>
             ` : html` <span> ${publicKey} </span> 
           `}
-        <br/><br/>
-
-        <textarea id="message" placeholder="write your message" /> <br/>
-        <button onClick=${() => publishMessage()}>Publish message</button>
+        </div>
+        <textarea id="message" placeholder="write your message" />
+        <button onClick=${() => publishMessage()}>Submit message</button>
 
         <h2> Messages </h2>
-        ${events.map((event) => html`
-          <img height=32 src=${event.author?.picture || ""}/>
-          <span> ${event.author?.name || event.pubkey} </span>
-          <b> ${event.content} </b> <br/><br/>
-        `)}
-      `;
+        <div class="flex flex-col">
+          ${events.sort((a, b) => b.created_at - a.created_at).map((event) => html`
+            <div class="flex flex-col p-3 m-2 border-2 border-solid">
+              <div class="flex items-center">
+                <img class="rounded-full border-1 border-solid w-6 h-6" src=${event.author?.picture || ""}/>
+                <span class="text-sm px-2"> ${event.author?.name || event.pubkey}</span>
+              </div>
+              <span class="py-4 font-bold">${event.content}</span>
+              <span class="text-sm self-end"> at ${new Date(event.created_at * 1000).toLocaleTimeString()} (${new Date(event.created_at * 1000).toLocaleDateString()}) </span>
+            </div>
+          `)}
+        </div>
+      </div> `;
     }
     render(html`<${App} />`, document.body);
   </script>
