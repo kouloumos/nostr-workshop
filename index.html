@@ -85,7 +85,20 @@
       }
 
       const zapAuthor = async (lud16, event_id) => {
-        console.log(lud16, event_id)
+        const zap_amount_sats = 10 // default amount
+        const [name, domain] = lud16.split('@')
+        const lnurl = `https://${domain}/.well-known/lnurlp/${name}`
+        let res = await fetch(lnurl)
+        const body = await res.json()
+        // payment request
+        res = await fetch(`${body.callback}?amount=${zap_amount_sats * 1000}&comment=nice post`)
+        const { pr: invoice } = await res.json()
+        console.log(invoice)
+        // pay the invoice
+        if (typeof window.webln !== "undefined") {
+          await window.webln.enable();
+          await window.webln.sendPayment(invoice)
+        }
       }
 
       return html`
