@@ -90,14 +90,34 @@
         const lnurl = `https://${domain}/.well-known/lnurlp/${name}`
         let res = await fetch(lnurl)
         const body = await res.json()
-        // payment request
-        res = await fetch(`${body.callback}?amount=${zap_amount_sats * 1000}&comment=nice post`)
-        const { pr: invoice } = await res.json()
-        console.log(invoice)
-        // pay the invoice
-        if (typeof window.webln !== "undefined") {
-          await window.webln.enable();
-          await window.webln.sendPayment(invoice)
+
+        if (body.allowsNostr && body.nostrPubkey) {
+          // zaps are supported
+          let zapRequest = {
+            kind: 9734,
+            created_at: Math.floor(Date.now() / 1000),
+            content: 'nice post!', // comment for zap
+            pubkey: publicKey, // pubkey of the sender
+            tags: [
+              ['p', body.nostrPubkey], // pubkey of the recipient
+              ['e', event_id],
+              ['amount', (zap_amount_sats * 1000).toString()],
+              ['relays', 'wss://nos.lol'], // relays the recipient's wallet should publish its zap receipt to
+            ],
+          }
+          zapRequest.id = nostrTools.getEventHash(zapRequest)
+          zapRequest = await window.nostr.signEvent(zapRequest)
+          zapRequest = encodeURI(JSON.stringify(zapRequest))
+
+          // payment request
+          res = await fetch(`${body.callback}?amount=${zap_amount_sats * 1000}&nostr=${zapRequest}`)
+          const { pr: invoice } = await res.json()
+          console.log(invoice)
+          // pay the invoice to finalize the zap
+          if (typeof window.webln !== "undefined") {
+            await window.webln.enable();
+            await window.webln.sendPayment(invoice)
+          }
         }
       }
 
