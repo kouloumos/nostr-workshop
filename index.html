@@ -84,6 +84,10 @@
         await relay.publish(event)
       }
 
+      const zapAuthor = async (lud16, event_id) => {
+        console.log(lud16, event_id)
+      }
+
       return html`
       <div class="flex flex-col px-12 lg:px-64">
         <h1>Welcome to Nostr workshop!</h1>
@@ -93,6 +97,7 @@
             <img class="rounded-full w-14 " src=${profile.picture}/>
             <div class="flex flex-col px-2">
               <span> ${profile.name} </span>
+              <span class="text-xs italic">${profile.lud16} </span>
             </div>
             ` : html` <span> ${publicKey} </span> 
           `}
@@ -110,6 +115,11 @@
               </div>
               <span class="py-4 font-bold">${event.content}</span>
               <span class="text-sm self-end"> at ${new Date(event.created_at * 1000).toLocaleTimeString()} (${new Date(event.created_at * 1000).toLocaleDateString()}) </span>
+              ${event.author?.lud16 && html`
+                <div class="flex justify-between pt-2">
+                  <button class="px-12 rounded" onClick=${() => zapAuthor(event.author.lud16, event.id)}>zap message</button>
+                </div>
+              `}
             </div>
           `)}
         </div>
