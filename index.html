@@ -9,6 +9,7 @@
   <script type="module">
     import { html, render, useEffect, useState } from 'https://esm.sh/htm/preact/standalone'
     import * as nostrTools from 'https://esm.sh/nostr-tools'
+    import * as bolt11 from 'https://esm.sh/bolt11'
 
     let publicKey = null
     if (window.nostr) {
@@ -62,6 +63,20 @@
           if (profileEvent) {
             const authorProfile = JSON.parse(profileEvent.content)
             event.author = authorProfile
+          }
+          // check if there are zaps for note
+          let zapReceipts = await relay.list([{
+            kinds: [9735],
+            '#e': [event.id]
+          }])
+          if (zapReceipts.length > 0) {
+            let totalZaps = 0
+            zapReceipts.forEach((event) => {
+              const bolt11Invoice = (event.tags.find(tag => tag[0] === 'bolt11') || [])[1];
+              totalZaps += Number(bolt11.decode(bolt11Invoice)['millisatoshis'])
+            })
+            event.zaps = totalZaps / 1000 // millisats to sats
+            console.log(`zap receipts for '${event.content}'`, zapReceipts)
           }
           setEvents(prev => [event, ...prev])
         })
@@ -150,6 +165,7 @@
               <span class="text-sm self-end"> at ${new Date(event.created_at * 1000).toLocaleTimeString()} (${new Date(event.created_at * 1000).toLocaleDateString()}) </span>
               ${event.author?.lud16 && html`
                 <div class="flex justify-between pt-2">
+                  <span> ${event.zaps || 0} ⚡ </span>
                   <button class="px-12 rounded" onClick=${() => zapAuthor(event.author.lud16, event.id)}>zap message</button>
                 </div>
               `}
